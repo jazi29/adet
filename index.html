@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Habits</title>
-<meta name="theme-color" content="#0a0c0b">
+<meta name="theme-color" content="#0b0b0e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Habits">
@@ -13,23 +13,23 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
-<div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="app">
 
 <div class="screen" id="s-today">
   <div class="hd"><div><h1 id="ttl"></h1><p id="dt"></p></div>
     <div style="display:flex"><button class="ib" id="tm" aria-label="Focus"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg></button><button class="ib g" id="add" aria-label="Add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
   <div class="week" id="week"></div>
+  <div class="sum hide" id="sum"></div>
   <button class="run hide" id="run"></button>
   <div id="list"></div>
 </div>
 
 <div class="screen hide" id="s-stats">
   <div class="hd"><div><h1>Stats</h1><p>last 30 days</p></div></div>
-  <div class="big mono" id="bp">0<small>%</small></div>
+  <div class="big" id="bp">0<small>%</small></div>
   <p class="lead" id="bl"></p>
   <div id="allcal"></div>
   <div class="sec">By habit</div><div id="rates"></div>
@@ -56,6 +56,6 @@
   <button class="btn" id="go">Start</button>
 </div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

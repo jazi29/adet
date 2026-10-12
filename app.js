@@ -64,22 +64,27 @@ var TI='<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4
 function drawToday(){
   var m=mondayOf(new Date(sel+'T12:00:00')),w='';
   for(var i=0;i<7;i++){var d=addD(m,i),k=key(d),fu=k>TODAY;
-    w+='<button class="day'+(k===sel?' on':'')+(fu?' fu':'')+'" data-d="'+k+'"'+(fu?' disabled':'')+'>'+WD[i]+'<b class="'+(allOk(k)?'full':'')+'">'+d.getDate()+'</b></button>'}
+    w+='<button class="day'+(k===sel?' on':'')+(k===TODAY?' t':'')+(fu?' fu':'')+'" data-d="'+k+'"'+(fu?' disabled':'')+'>'+WD[i]+'<b class="'+(allOk(k)?'full':'')+'">'+d.getDate()+'</b></button>'}
   $('week').innerHTML=w;
   var sd=new Date(sel+'T12:00:00');
   $('ttl').textContent=sel===TODAY?'Today':sd.toLocaleDateString('en-US',{day:'numeric',month:'long'});
   $('dt').textContent=sel===TODAY?sd.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'}):sd.toLocaleDateString('en-US',{weekday:'long'});
-  var h='';if(!S.habits.length)h='<div class="empty">Nothing here yet.<br>Tap + to add your first habit.</div>';
+  var h='';if(!S.habits.length)h='<div class="empty">No habits yet<br><button class="btn" data-add="1">Add your first habit</button></div>';
   S.habits.forEach(function(x){var v=val(x,sel),st=streakOf(x),s;
     s=x.unit==='min'?v+' / '+x.goal+' min':x.goal>1?v+' / '+x.goal:'';
     if(st)s+=(s?' · ':'')+st+' '+pl(st)+' in a row';
     h+='<div class="row" data-o="'+x.id+'"><div class="m"><div class="n">'+esc(x.name)+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'
       +(x.unit==='min'?'<button class="ib" data-f="'+x.id+'" aria-label="Focus">'+TI+'</button>':'')
       +'<button class="ck'+(ok(x,sel)?' on':v?' part':'')+(popId===x.id&&ok(x,sel)?' pop':'')+'" data-c="'+x.id+'"'+(sel===TODAY?'':' disabled')+' aria-label="Check in">'+CK+'</button></div>'});
+  if(S.habits.length)h+='<button class="addrow" data-add="1">+ New habit</button>';
+  var dn=S.habits.filter(function(x){return ok(x,sel)}).length,tt=S.habits.length,sm=$('sum');
+  sm.classList.toggle('hide',!tt);
+  if(tt)sm.innerHTML='<div class="sl"><b>'+dn+'<small>/'+tt+'</small></b><span>'+(dn===tt?'All done. Great work!':dn?'Keep going':'Time to start')+'</span></div><div class="pbar"><u style="width:'+Math.round(dn/tt*100)+'%"></u></div>';
   $('list').innerHTML=h;
 }
 $('week').onclick=function(e){var b=e.target.closest('[data-d]');if(b){sel=b.dataset.d;drawToday()}};
 $('list').onclick=function(e){
+  if(e.target.closest('[data-add]')){addSheet();return}
   var c=e.target.closest('[data-c]');if(c){if(sel!==TODAY)return;var hx=hab(c.dataset.c);bump(hx,sel);if(ok(hx,sel)){popId=hx.id;buzz()}save();refresh();popId=null;return}
   var f=e.target.closest('[data-f]');if(f){openFocus(f.dataset.f);return}
   var o=e.target.closest('[data-o]');if(o)detail(o.dataset.o)};
