@@ -13,9 +13,10 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+<div class="bg" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="app">
 
 <div class="screen" id="s-today">
@@ -41,7 +42,11 @@
   <div id="tlist"></div>
 </div>
 
-<nav class="nav"><div id="nav"><button data-t="today" class="on">Today</button><button data-t="tasks">Tasks</button><button data-t="stats">Stats</button></div></nav>
+<nav class="nav"><div id="nav">
+  <button data-t="today" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Today</button>
+  <button data-t="tasks"><svg viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tasks</button>
+  <button data-t="stats"><svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V5M18 20v-6"/></svg>Stats</button>
+</div></nav>
 </div>
 
 <div class="fs hide" id="fs">
@@ -51,6 +56,6 @@
   <button class="btn" id="go">Start</button>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
