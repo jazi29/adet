@@ -5,7 +5,7 @@ html{height:100%;background:var(--bg);overscroll-behavior:none}
 body{margin:0;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;background:var(--bg);color:var(--ink);font-family:'Instrument Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 input{-webkit-user-select:text;user-select:text}
 .app{position:absolute;top:0;left:0;right:0;bottom:0;max-width:480px;margin:0 auto}
-.screen{position:absolute;top:0;left:0;right:0;bottom:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:calc(18px + env(safe-area-inset-top,0px)) 20px calc(92px + env(safe-area-inset-bottom,0px))}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:calc(18px + env(safe-area-inset-top,0px)) 20px calc(84px + env(safe-area-inset-bottom,0px))}
 .hide{display:none!important}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
 /* header */
@@ -52,11 +52,11 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;paddin
 .st3{display:flex;gap:10px;background:var(--s1);border:1px solid var(--line);border-radius:22px;padding:16px 18px;margin-bottom:18px}
 .st3 div{flex:1}.st3 b{display:block;font-size:28px;font-weight:700}.st3 span{font-size:13px;color:var(--mute)}
 .hw{display:flex;gap:8px}
-.hl{display:grid;grid-template-rows:repeat(7,15px);gap:3px;margin-top:19px;font-size:11px;color:var(--mute);line-height:15px}
-.hs{overflow-x:auto;flex:1;scrollbar-width:none}.hs::-webkit-scrollbar{display:none}
-.ml{display:grid;grid-auto-flow:column;grid-auto-columns:15px;gap:3px;height:16px;margin-bottom:3px;font-size:11px;color:var(--mute);white-space:nowrap}
-.hm2{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,15px);grid-auto-columns:15px;gap:3px;width:max-content}
-.c{width:15px;height:15px;border-radius:4px;background:var(--l0)}
+.hl{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;padding-top:19px;font-size:11px;color:var(--mute);align-items:center}
+.hs{flex:1;min-width:0}
+.ml{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;height:16px;margin-bottom:3px;font-size:11px;color:var(--mute);white-space:nowrap}
+.hm2{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,auto);grid-auto-columns:1fr;gap:3px}
+.c{aspect-ratio:1;border-radius:3px;background:var(--l0)}
 .c.l1{background:var(--l1)}.c.l2{background:var(--l2)}.c.l3{background:var(--l3)}.c.l4{background:var(--l4)}
 .c.fu{background:transparent;box-shadow:inset 0 0 0 1px #21262d}.c.t{outline:1.5px solid var(--ink);outline-offset:-1px}
 .cap{font-size:14px;color:var(--mute);min-height:20px;margin-top:10px}
@@ -90,9 +90,9 @@ input:focus,select:focus{border-color:var(--ac2)}select{color-scheme:dark}
 .chips{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
 .chip{background:var(--s2);color:var(--ink);font-size:17px;font-weight:600;padding:10px 20px;border-radius:14px}.chip.on{background:var(--ac2);color:#fff}
 /* tab bar: solid, edge to edge, reaches the very bottom */
-.nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding-bottom:calc(env(safe-area-inset-bottom,0px)*.4);z-index:5}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding-bottom:max(6px,calc(env(safe-area-inset-bottom,0px)*.3));z-index:5}
 .nav div{max-width:480px;margin:0 auto;display:flex}
-.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 8px;font-size:11px;font-weight:500;color:var(--mute);transition:color .2s}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 0 3px;font-size:11px;font-weight:500;color:var(--mute);transition:color .2s}
 .nav button.on{color:var(--ac)}
 .nav svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 /* motion */
@@ -118,3 +118,4 @@ button:active{transform:scale(.95)}
 .ck.pop.on svg path{stroke-dasharray:24;animation:draw .3s ease-out .06s both}
 .hm2,.ml{animation:fadeIn .5s ease}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.cap:empty{display:none}

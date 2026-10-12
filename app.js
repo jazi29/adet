@@ -53,8 +53,8 @@ function hmHTML(f,weeks){
     g+='<div class="c'+(lv?' l'+lv:'')+(fu?' fu':'')+(k===TODAY?' t':'')+'" data-k="'+k+'"></div>'}
   return '<div class="hw"><div class="hl"><span>Mo</span><span></span><span>We</span><span></span><span>Fr</span><span></span><span></span></div><div class="hs"><div class="ml">'+ml+'</div><div class="hm2">'+g+'</div></div></div><div class="cap"></div>'}
 function mountHM(el,f,txt){
-  function draw(){var sc=el.querySelector('.hs'),p=sc?sc.scrollLeft:0;el.innerHTML=hmHTML(f,53);sc=el.querySelector('.hs');sc.scrollLeft=draw.done?p:0;if(draw.done===undefined)draw.end()}
-  draw.end=function(){var sc=el.querySelector('.hs');if(sc&&sc.clientWidth){sc.scrollLeft=1e5;draw.done=true}};
+  function draw(){el.innerHTML=hmHTML(f,17)}
+  draw.end=function(){draw.done=true};
   el.onclick=function(e){var k=e.target.dataset.k;if(!k||k>TODAY)return;el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+txt(k)};
   draw();return draw}
 var CK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
@@ -183,3 +183,11 @@ drawChips();drawSel();refresh();tick();runAnim($('list'));
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
 }
+
+/* diagnostics: tap the screen title 5 times to see viewport info */
+(function(){var n=0,t=0;$('ttl').addEventListener('click',function(){var now=Date.now();n=now-t<1500?n+1:1;t=now;if(n<5)return;n=0;
+  var p=document.createElement('div');p.style.cssText='position:absolute;visibility:hidden;padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(p);
+  var sb=parseFloat(getComputedStyle(p).paddingBottom)||0;p.remove();
+  var d=document.createElement('div');d.style.cssText='position:fixed;left:12px;right:12px;top:90px;z-index:99;background:#000;color:#3fb950;border:1px solid #3fb950;border-radius:12px;padding:12px;font:13px/1.5 monospace';
+  d.textContent='standalone: '+(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)+' | inner: '+innerWidth+'x'+innerHeight+' | screen: '+screen.width+'x'+screen.height+' | safeBottom: '+sb+'px (tap to close)';
+  d.onclick=function(){d.remove()};document.body.appendChild(d)})})();
