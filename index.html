@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Привычки</title>
+<title>Habits</title>
 <meta name="theme-color" content="#0a0c0b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Привычки">
+<meta name="apple-mobile-web-app-title" content="Habits">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -20,35 +20,35 @@
 
 <div class="screen" id="s-today">
   <div class="hd"><div><h1 id="ttl"></h1><p id="dt"></p></div>
-    <div style="display:flex"><button class="ib" id="tm" aria-label="Фокус"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg></button><button class="ib g" id="add" aria-label="Добавить"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+    <div style="display:flex"><button class="ib" id="tm" aria-label="Focus"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg></button><button class="ib g" id="add" aria-label="Add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
   <div class="week" id="week"></div>
   <button class="run hide" id="run"></button>
   <div id="list"></div>
 </div>
 
 <div class="screen hide" id="s-stats">
-  <div class="hd"><div><h1>Итоги</h1><p>последние 30 дней</p></div></div>
+  <div class="hd"><div><h1>Stats</h1><p>last 30 days</p></div></div>
   <div class="big mono" id="bp">0<small>%</small></div>
   <p class="lead" id="bl"></p>
   <div id="allcal"></div>
-  <div class="sec">По привычкам</div><div id="rates"></div>
-  <div class="sec">Фокус</div><div class="st3"><div><b id="k1">0</b><span>мин всего</span></div><div><b id="k2">0</b><span>сессий</span></div><div><b id="k3">0</b><span>мин сегодня</span></div></div>
+  <div class="sec">By habit</div><div id="rates"></div>
+  <div class="sec">Focus</div><div class="st3"><div><b id="k1">0</b><span>min total</span></div><div><b id="k2">0</b><span>sessions</span></div><div><b id="k3">0</b><span>min today</span></div></div>
 </div>
 
 <div class="screen hide" id="s-tasks">
-  <div class="hd"><div><h1>Задачи</h1><p>простой список дел</p></div></div>
-  <div class="addr"><input id="tin" placeholder="Новая задача" maxlength="60"><button id="tadd">Добавить</button></div>
+  <div class="hd"><div><h1>Tasks</h1><p>a simple to-do list</p></div></div>
+  <div class="addr"><input id="tin" placeholder="New task" maxlength="60"><button id="tadd">Add</button></div>
   <div id="tlist"></div>
 </div>
 
-<nav class="nav"><div id="nav"><button data-t="today" class="on">Сегодня</button><button data-t="tasks">Задачи</button><button data-t="stats">Итоги</button></div></nav>
+<nav class="nav"><div id="nav"><button data-t="today" class="on">Today</button><button data-t="tasks">Tasks</button><button data-t="stats">Stats</button></div></nav>
 </div>
 
 <div class="fs hide" id="fs">
-  <button class="ib" id="fx" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <button class="ib" id="fx" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="c2"><div class="fl" id="fl"></div><div class="ft" id="ft">25:00</div><div class="fb"><u id="fu"></u></div>
     <div class="chips" id="chips"></div><select id="hsel"></select></div>
-  <button class="btn" id="go">Начать</button>
+  <button class="btn" id="go">Start</button>
 </div>
 
 <script src="app.js"></script>
