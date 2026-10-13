@@ -71,7 +71,7 @@ input:focus,select:focus{border-color:var(--ac2)}select{color-scheme:dark}
 .btn.d{background:transparent;color:var(--bad);margin-top:6px}
 .btn.stop{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
 /* sheet */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:10;display:flex;align-items:flex-end;justify-content:center}
 .sheet{width:100%;max-width:480px;background:var(--s1);border-top:1px solid var(--line);border-radius:28px 28px 0 0;padding:12px 22px calc(26px + env(safe-area-inset-bottom,0px));max-height:92%;overflow-y:auto}
 .sheet:before{content:'';display:block;width:38px;height:5px;border-radius:3px;background:#3d444d;margin:0 auto 18px}
 .sheet h3{margin:0 0 16px;font-size:24px;font-weight:700;letter-spacing:-.01em}
@@ -81,7 +81,7 @@ input:focus,select:focus{border-color:var(--ac2)}select{color-scheme:dark}
 .tg.on{background:var(--ac2)}.tg.on:after{transform:translateX(20px)}
 .note{color:var(--mute);font-size:13px;margin:12px 0 0;line-height:1.4}
 /* focus */
-.fs{position:fixed;inset:0;background:var(--bg);z-index:20;padding:calc(12px + env(safe-area-inset-top,0px)) 22px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.fs{position:absolute;inset:0;background:var(--bg);z-index:20;padding:calc(12px + env(safe-area-inset-top,0px)) 22px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .fs .c2{flex:1;display:flex;flex-direction:column;justify-content:center}
 .fl{color:var(--mute);font-size:17px;text-align:center;min-height:24px}
 .ft{font-size:88px;font-weight:600;letter-spacing:-.04em;text-align:center;font-variant-numeric:tabular-nums;margin:10px 0 20px}
@@ -90,7 +90,7 @@ input:focus,select:focus{border-color:var(--ac2)}select{color-scheme:dark}
 .chips{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
 .chip{background:var(--s2);color:var(--ink);font-size:17px;font-weight:600;padding:10px 20px;border-radius:14px}.chip.on{background:var(--ac2);color:#fff}
 /* tab bar: flush with the bottom edge */
-.nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:0;z-index:5}
+.nav{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:0;z-index:5}
 .nav div{max-width:480px;margin:0 auto;display:flex}
 .nav button{position:relative;flex:1;height:56px;display:flex;align-items:center;justify-content:center;color:var(--mute);transition:color .2s}
 .nav button:before{content:'';position:absolute;width:60px;height:34px;border-radius:17px;background:transparent;transition:background .25s}
@@ -142,7 +142,11 @@ button:active{transform:scale(.95)}
 .rh{display:flex;justify-content:space-between;font-size:16px;font-weight:500;margin-bottom:10px}.rh span+span{color:var(--mute)}
 .strip{display:grid;gap:3px}.strip .c{aspect-ratio:1;border-radius:4px}
 .strip.w{gap:6px}.strip.w .c{border-radius:9px}.strip.m{gap:2px}.strip.m .c{border-radius:2px}.strip.y{gap:5px}.strip.y .c{border-radius:6px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:12px 18px;z-index:60;font-size:15px;animation:fadeIn .2s;transition:opacity .35s;max-width:90%}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:76px;background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:12px 18px;z-index:60;font-size:15px;animation:fadeIn .2s;transition:opacity .35s;max-width:90%}
 .toast.out{opacity:0}
 textarea{width:100%;height:120px;background:var(--s2);color:var(--ink);border:1.5px solid transparent;border-radius:14px;padding:12px 14px;font:13px/1.4 ui-monospace,Menlo,monospace;outline:0;resize:none;-webkit-user-select:text;user-select:text;margin-top:10px}
 textarea:focus{border-color:var(--ac2)}
+
+/* optional: force the app frame to the physical screen height */
+html.stretch body{bottom:auto;height:var(--appH)}
+.card2 .sw{margin:14px 0 0}
