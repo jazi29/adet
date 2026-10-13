@@ -13,7 +13,7 @@ function fmt(ms){ms=Math.max(0,Math.ceil(ms/1000));var m=Math.floor(ms/60),s=ms%
 function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
 function mondayOf(d){var x=new Date(d);x.setHours(12);return addD(x,-((x.getDay()+6)%7))}
 var TODAY=key(new Date()),sel=TODAY,tab='today',dur=25,timer=null;
-var popId=null,newTaskId=null;
+var popId=null,newTaskId=null,rv='o',ro=0;
 function buzz(){try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
 function runAnim(el){if(!el)return;el.classList.remove('anim');void el.offsetWidth;el.classList.add('anim');setTimeout(function(){el.classList.remove('anim')},800)}
 function countUp(){var el=$('bp'),to=+el.dataset.v||0,t0=performance.now();(function f(t){var k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.innerHTML=Math.round(to*e)+'<small>%</small>';if(k<1)requestAnimationFrame(f)})(t0)}
@@ -173,21 +173,93 @@ document.addEventListener('visibilitychange',function(){if(document.hidden)retur
 function show(t){tab=t;['today','tasks','stats'].forEach(function(k){$('s-'+k).classList.toggle('hide',k!==t)});
   [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});tick();refresh();if(t==='stats'&&!drawAllCal.done)drawAllCal.end();runAnim({today:$('list'),tasks:$('tlist'),stats:$('rates')}[t]);if(t==='stats')countUp()}
 $('nav').onclick=function(e){var b=e.target.closest('[data-t]');if(b)show(b.dataset.t)};
-function refresh(){drawToday();drawTasks();drawStats()}
+function refresh(){drawToday();drawTasks();drawStats();if(rv!=='o')drawReport()}
 
 var drawAllCal=mountHM($('allcal'),function(k){var n=S.habits.length,c=nOk(k),f=n?c/n:0;return f===0?0:f<.5?1:f<.75?2:f<1?3:4},function(k){return nOk(k)+' of '+S.habits.length});
 if(S.run){if(Date.now()>=S.run.end)finish(true);else timer=setInterval(tick,1000)}
 drawChips();drawSel();refresh();tick();runAnim($('list'));
 
+
+/* ---------- reports: week / month / year ---------- */
+function period(){
+  var now=new Date(),keys=[],groups=[],gl=[],label;
+  if(rv==='w'){var m=addD(mondayOf(now),ro*7);
+    for(var i=0;i<7;i++){var k=key(addD(m,i));keys.push(k);groups.push([k]);gl.push(WD[i])}
+    label=addD(m,0).toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+addD(m,6).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+  else if(rv==='m'){var f=new Date(now.getFullYear(),now.getMonth()+ro,1,12),n=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();
+    for(var j=1;j<=n;j++){var kk=key(new Date(f.getFullYear(),f.getMonth(),j,12));keys.push(kk);groups.push([kk]);gl.push(j===1||j%5===0?String(j):'')}
+    label=f.toLocaleDateString('en-US',{month:'long',year:'numeric'})}
+  else{var y=now.getFullYear()+ro,MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
+    for(var a=0;a<12;a++){var dn=new Date(y,a+1,0).getDate(),g=[];for(var b=1;b<=dn;b++){var k3=key(new Date(y,a,b,12));g.push(k3);keys.push(k3)}groups.push(g);gl.push(MN[a])}
+    label=String(y)}
+  return {keys:keys,groups:groups,gl:gl,label:label}}
+function pastOf(ks){return ks.filter(function(k){return k<=TODAY})}
+function drawReport(){
+  var P=period(),hs=S.habits,n=hs.length,past=pastOf(P.keys),
+    done=past.reduce(function(a,k){return a+nOk(k)},0),poss=past.length*n,pct=poss?Math.round(done/poss*100):0,
+    perfect=past.filter(allOk).length,set={},
+    best=hs.reduce(function(a,h){var c=0,b=0;P.keys.forEach(function(k){if(k<=TODAY&&ok(h,k)){c++;if(c>b)b=c}else c=0});return Math.max(a,b)},0);
+  P.keys.forEach(function(k){set[k]=1});
+  var fm=S.sessions.reduce(function(a,s){return set[s.d]?a+s.m:a},0);
+  var h='<div class="rng"><button id="rpv" aria-label="Previous">‹</button><span>'+P.label+'</span><button id="rnx" aria-label="Next"'+(ro>=0?' disabled':'')+'>›</button></div>';
+  h+='<div class="card2"><div class="big sm">'+pct+'<small>%</small></div><p class="lead" style="margin-bottom:16px">'+(n?done+' of '+poss+' check-ins':'Add habits to see reports')+'</p><div class="bars'+(rv==='m'?' m':'')+'">'
+   +P.groups.map(function(g,i){var ks=pastOf(g),d=ks.reduce(function(a,k){return a+nOk(k)},0),p=ks.length&&n?Math.round(d/(ks.length*n)*100):0;
+     return '<div class="bc"><div class="bw"><u class="'+(ks.length&&n?'':'f')+'" style="height:'+(ks.length&&n?Math.max(p,3):3)+'%"></u></div><span>'+P.gl[i]+'</span></div>'}).join('')+'</div></div>';
+  h+='<div class="st3"><div><b>'+perfect+'</b><span>perfect days</span></div><div><b>'+best+'</b><span>best streak</span></div><div><b>'+fm+'</b><span>focus min</span></div></div>';
+  h+='<div class="sec">By habit</div><div class="card2">'+(n?hs.map(function(x){
+    var d=past.filter(function(k){return ok(x,k)}).length,p=past.length?Math.round(d/past.length*100):0;
+    var cells=P.groups.map(function(g){var lv;
+      if(rv==='y'){var q=pastOf(g),r=q.length?q.filter(function(k){return ok(x,k)}).length/q.length:0;lv=!q.length?'fu':r===0?'':r<.25?'l1':r<.5?'l2':r<.75?'l3':'l4'}
+      else{var k=g[0];lv=k>TODAY?'fu':ok(x,k)?'l4':''}
+      return '<div class="c '+lv+'"></div>'}).join('');
+    return '<div class="rr"><div class="rh"><span>'+esc(x.name)+'</span><span>'+p+'%</span></div><div class="strip '+rv+'" style="grid-template-columns:repeat('+P.groups.length+',1fr)">'+cells+'</div></div>'}).join(''):'<p class="note" style="margin:0">No habits yet.</p>')+'</div>';
+  $('rep').innerHTML=h;
+}
+$('rep').onclick=function(e){var b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.id==='rpv'){ro--;drawReport()}else if(b.id==='rnx'&&ro<0){ro++;drawReport()}};
+$('seg2').onclick=function(e){var v=e.target.dataset.v;if(!v)return;rv=v;ro=0;
+  [].forEach.call($('seg2').children,function(b){b.classList.toggle('on',b.dataset.v===v)});
+  $('ovw').classList.toggle('hide',v!=='o');$('rep').classList.toggle('hide',v==='o');
+  $('stp').textContent={o:'last 30 days',w:'weekly report',m:'monthly report',y:'yearly report'}[v];
+  if(v!=='o')drawReport()};
+
+/* ---------- backup: export / import ---------- */
+function isStandalone(){return navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)}
+function toast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.classList.add('out')},2300);setTimeout(function(){t.remove()},2700)}
+function backupJSON(){return JSON.stringify({app:'habits',version:2,exported:new Date().toISOString(),habits:S.habits,tasks:S.tasks,sessions:S.sessions},null,2)}
+function copyText(txt,ta){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast('Copied')},function(){fallbackCopy()});return}}catch(e){}fallbackCopy();
+  function fallbackCopy(){ta.focus();ta.select();ta.setSelectionRange(0,txt.length+1);var ok2=false;try{ok2=document.execCommand('copy')}catch(e){}toast(ok2?'Copied':'Select the text and copy it manually')}}
+$('exp').onclick=function(){
+  var data=backupJSON(),name='habits-backup-'+key(new Date())+'.json';
+  try{var f=new File([data],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Habits backup'}).catch(function(){});return}}catch(e){}
+  if(!isStandalone()){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);toast('Backup downloaded');return}
+  sheet('<h3>Backup</h3><p class="note" style="margin:0">Copy this text and keep it somewhere safe (Notes, a message to yourself). You can paste it back with Import.</p><textarea id="bk" readonly></textarea><button class="btn" id="bkc">Copy backup</button>');
+  $('bk').value=data;$('bkc').onclick=function(){copyText(data,$('bk'))}};
+$('impb').onclick=function(){
+  sheet('<h3>Import backup</h3><button class="btn o" id="ipf" style="margin-top:0">Choose file…</button><textarea id="ipt" placeholder="…or paste backup text here"></textarea><button class="btn" id="ipg">Import pasted text</button>');
+  $('ipf').onclick=function(){$('imp').click()};
+  $('ipg').onclick=function(){var v=$('ipt').value.trim();if(!v){$('ipt').focus();return}importData(v)}};
+$('imp').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;var r=new FileReader();r.onload=function(){importData(String(r.result))};r.onerror=function(){toast('Could not read the file')};r.readAsText(f)};
+function importData(txt){
+  var d;try{d=JSON.parse(txt)}catch(e){toast('This is not a valid backup');return}
+  if(!d||!Array.isArray(d.habits)){toast('This is not a valid backup');return}
+  var hs=d.habits.filter(function(h){return h&&h.name}).map(function(h,i){return {id:String(h.id||'h'+Date.now()+i),name:String(h.name).slice(0,30),unit:h.unit==='min'?'min':'x',goal:Math.max(1,parseInt(h.goal)||1),log:(h.log&&typeof h.log==='object')?h.log:{}}});
+  var ts=(Array.isArray(d.tasks)?d.tasks:[]).filter(function(t){return t&&t.title}).map(function(t,i){return {id:String(t.id||'t'+Date.now()+i),title:String(t.title).slice(0,60),done:!!t.done}});
+  var ss=(Array.isArray(d.sessions)?d.sessions:[]).filter(function(s){return s&&s.d&&+s.m>0}).map(function(s){return {d:String(s.d),m:+s.m,h:s.h||null}});
+  sheet('<h3>Import backup</h3><p class="note" style="margin:0 0 4px">Found '+hs.length+' habits, '+ts.length+' tasks and '+ss.length+' focus sessions.</p><button class="btn" id="imr">Replace my data</button><button class="btn o" id="imm">Merge with my data</button>');
+  function end(){S.run=null;clearInterval(timer);save();closeSheet();refresh();tick();toast('Data imported')}
+  $('imr').onclick=function(){S.habits=hs;S.tasks=ts;S.sessions=ss;end()};
+  $('imm').onclick=function(){
+    hs.forEach(function(h){var e=hab(h.id);if(!e)S.habits.push(h);else for(var k in h.log){if(!(k in e.log)||h.log[k]>e.log[k])e.log[k]=h.log[k]}});
+    ts.forEach(function(t){if(!S.tasks.some(function(x){return x.id===t.id}))S.tasks.push(t)});
+    var seen={};S.sessions.forEach(function(s){seen[s.d+'|'+s.m+'|'+s.h]=1});ss.forEach(function(s){if(!seen[s.d+'|'+s.m+'|'+s.h])S.sessions.push(s)});end()}}
+function devInfo(){var p=document.createElement('div');p.style.cssText='position:absolute;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(p);
+  var cs=getComputedStyle(p),t=parseFloat(cs.paddingTop)||0,b=parseFloat(cs.paddingBottom)||0;p.remove();
+  $('dev').textContent=(isStandalone()?'app mode':'browser')+' · view '+innerWidth+'×'+innerHeight+' · screen '+screen.width+'×'+screen.height+' · safe top '+t+' / bottom '+b}
+devInfo();window.addEventListener('resize',devInfo);
+
 /* offline + install support (works on https) */
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
 }
-
-/* diagnostics: tap the screen title 5 times to see viewport info */
-(function(){var n=0,t=0;$('ttl').addEventListener('click',function(){var now=Date.now();n=now-t<1500?n+1:1;t=now;if(n<5)return;n=0;
-  var p=document.createElement('div');p.style.cssText='position:absolute;visibility:hidden;padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(p);
-  var sb=parseFloat(getComputedStyle(p).paddingBottom)||0;p.remove();
-  var d=document.createElement('div');d.style.cssText='position:fixed;left:12px;right:12px;top:90px;z-index:99;background:#000;color:#3fb950;border:1px solid #3fb950;border-radius:12px;padding:12px;font:13px/1.5 monospace';
-  d.textContent='standalone: '+(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)+' | inner: '+innerWidth+'x'+innerHeight+' | screen: '+screen.width+'x'+screen.height+' | safeBottom: '+sb+'px (tap to close)';
-  d.onclick=function(){d.remove()};document.body.appendChild(d)})})();
