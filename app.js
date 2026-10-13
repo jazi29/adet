@@ -170,7 +170,7 @@ document.addEventListener('visibilitychange',function(){if(document.hidden)retur
   var nt=key(new Date());if(nt!==TODAY){if(sel===TODAY)sel=nt;TODAY=nt;refresh()}tick()});
 
 /* NAV */
-function show(t){tab=t;['today','tasks','stats'].forEach(function(k){$('s-'+k).classList.toggle('hide',k!==t)});
+function show(t){tab=t;window.scrollTo(0,0);['today','tasks','stats'].forEach(function(k){$('s-'+k).classList.toggle('hide',k!==t)});
   [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});tick();refresh();if(t==='stats'&&!drawAllCal.done)drawAllCal.end();runAnim({today:$('list'),tasks:$('tlist'),stats:$('rates')}[t]);if(t==='stats')countUp()}
 $('nav').onclick=function(e){var b=e.target.closest('[data-t]');if(b)show(b.dataset.t)};
 function refresh(){drawToday();drawTasks();drawStats();if(rv!=='o')drawReport()}
@@ -258,19 +258,4 @@ function devInfo(){var p=document.createElement('div');p.style.cssText='position
   var cs=getComputedStyle(p),t=parseFloat(cs.paddingTop)||0,b=parseFloat(cs.paddingBottom)||0;p.remove();
   $('dev').textContent=(isStandalone()?'app mode':'browser')+' · view '+innerWidth+'×'+innerHeight+' · app '+document.body.clientHeight+' · screen '+screen.width+'×'+screen.height+' · safe top '+t+' / bottom '+b}
 devInfo();
-/* ---------- full-screen stretch switch ---------- */
-var FITK='habits_fit';
-function fitOn(){try{return localStorage.getItem(FITK)==='1'}catch(e){return false}}
-function applyFit(){var el=document.documentElement;
-  if(!fitOn()){el.classList.remove('stretch');el.style.removeProperty('--appH');return}
-  var a=Math.max(screen.width,screen.height),b=Math.min(screen.width,screen.height);
-  el.style.setProperty('--appH',(innerHeight>=innerWidth?a:b)+'px');el.classList.add('stretch')}
-$('fit').classList.toggle('on',fitOn());
-$('fit').onclick=function(){try{localStorage.setItem(FITK,fitOn()?'0':'1')}catch(e){}this.classList.toggle('on',fitOn());applyFit();devInfo()};
-applyFit();window.addEventListener('resize',function(){applyFit();devInfo()});window.addEventListener('orientationchange',applyFit);
-
-
-/* offline + install support (works on https) */
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
-  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
-}
+window.addEventListener('resize',devInfo);
