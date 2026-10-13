@@ -10,10 +10,11 @@
 <meta name="apple-mobile-web-app-title" content="Habits">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="app">
@@ -57,13 +58,25 @@
 </div>
 
 <div class="fs hide" id="fs">
-  <button class="ib" id="fx" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <div class="c2"><div class="fl" id="fl"></div><div class="ft" id="ft">25:00</div><div class="fb"><u id="fu"></u></div>
-    <div class="chips" id="chips"></div><select id="hsel"></select></div>
-  <button class="btn" id="go">Start</button>
+  <div class="fh"><button class="ib" id="fx" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="ftl">Focus</span><span class="fsp"></span></div>
+  <div class="c2">
+    <div class="dial" id="dial">
+      <svg viewBox="0 0 280 280" aria-hidden="true">
+        <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#56d364"/><stop offset="1" stop-color="#238636"/></linearGradient></defs>
+        <circle class="tick" cx="140" cy="140" r="134"/>
+        <circle class="trk" cx="140" cy="140" r="116"/>
+        <circle class="arc" id="arc" cx="140" cy="140" r="116" stroke="url(#fg)"/>
+        <g class="knob" id="knob"><circle cx="140" cy="24" r="8"/></g>
+      </svg>
+      <div class="dc"><div class="ft" id="ft">25:00</div><div class="fl" id="fl"></div></div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <select id="hsel" aria-label="Habit"></select>
+  </div>
+  <button class="btn" id="go"></button>
 </div>
 
 <input type="file" id="imp" accept=".json,application/json,text/plain" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" tabindex="-1">
-<script src="app.js?v=10"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
