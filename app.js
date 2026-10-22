@@ -50,13 +50,30 @@ function hmHTML(f,weeks){
   var st=addD(mondayOf(new Date()),-(weeks-1)*7),ml='',g='';
   for(var i=0;i<weeks;i++){var m0=addD(st,i*7);ml+='<span>'+(m0.getDate()<=7?m0.toLocaleDateString('en-US',{month:'short'}).replace('.',''):'')+'</span>'}
   for(var j=0;j<weeks*7;j++){var k=key(addD(st,j)),fu=k>TODAY,lv=fu?0:f(k);
-    g+='<div class="c'+(lv?' l'+lv:'')+(fu?' fu':'')+(k===TODAY?' t':'')+'" data-k="'+k+'"></div>'}
+    g+='<div class="c'+(lv?' l'+lv:'')+(fu?' fu':'')+(k===TODAY?' t':'')+'" data-k="'+k+'" style="animation-delay:'+Math.min(Math.floor(j/7)*14,260)+'ms"></div>'}
   return '<div class="hw"><div class="hl"><span>Mo</span><span></span><span>We</span><span></span><span>Fr</span><span></span><span></span></div><div class="hs"><div class="ml">'+ml+'</div><div class="hm2">'+g+'</div></div></div><div class="cap"></div>'}
 function mountHM(el,f,txt){
   function draw(){el.innerHTML=hmHTML(f,17)}
   draw.end=function(){draw.done=true};
   el.onclick=function(e){var k=e.target.dataset.k;if(!k||k>TODAY)return;el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+txt(k)};
   draw();return draw}
+function mountCal(el,x){
+  var cur=new Date();cur=new Date(cur.getFullYear(),cur.getMonth(),1,12);
+  function draw(){
+    var y=cur.getFullYear(),m=cur.getMonth(),first=new Date(y,m,1,12),dim=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7,done=0,days=0,cells='',now=new Date();
+    for(var i=0;i<off;i++)cells+='<div class="mc e"></div>';
+    for(var d=1;d<=dim;d++){var k=key(new Date(y,m,d,12)),fu=k>TODAY,dn=!fu&&ok(x,k),pt=!fu&&!dn&&val(x,k)>0;
+      if(!fu){days++;if(dn)done++}
+      cells+='<div class="mc'+(dn?' d':pt?' p':'')+(fu?' f':'')+(k===TODAY?' t':'')+'" data-k="'+k+'" style="animation-delay:'+Math.min((off+d)*12,360)+'ms"><span>'+d+'</span></div>'}
+    var atNow=y===now.getFullYear()&&m===now.getMonth();
+    el.innerHTML='<div class="mh"><button data-m="-1" aria-label="Previous month">‹</button><span>'+first.toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</span><button data-m="1" aria-label="Next month"'+(atNow?' disabled':'')+'>›</button></div>'
+      +'<div class="mw">'+WD.map(function(w){return '<i>'+w+'</i>'}).join('')+'</div><div class="mg">'+cells+'</div>'
+      +'<p class="mm"><b>'+done+'</b> of '+days+' days · <b>'+(days?Math.round(done/days*100):0)+'%</b></p><div class="cap"></div>'}
+  el.onclick=function(e){
+    var b=e.target.closest('[data-m]');if(b){if(!b.disabled){cur=new Date(cur.getFullYear(),cur.getMonth()+Number(b.dataset.m),1,12);draw()}return}
+    var c=e.target.closest('[data-k]');if(!c||c.dataset.k>TODAY)return;var k=c.dataset.k;
+    el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+val(x,k)+' / '+x.goal+(x.unit==='min'?' min':'')};
+  draw()}
 var CK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
 var TI='<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg>';
 
@@ -105,9 +122,9 @@ function detail(id){
   var x=hab(id);if(!x)return;var n30=0;
   for(var i=0;i<30;i++)if(ok(x,key(addD(new Date(),-i))))n30++;
   sheet('<h3>'+esc(x.name)+'</h3><div class="st3"><div><b>'+streakOf(x)+'</b><span>streak</span></div><div><b>'+bestOf(x)+'</b><span>best</span></div><div><b>'+Math.round(n30/30*100)+'%</b><span>last 30 days</span></div></div>'
-   +'<div id="dcal"></div><p class="note">The calendar fills in automatically from your check-ins and focus sessions.</p>'
+   +'<div id="dcal" class="cm"></div>'
    +(x.unit==='min'?'<button class="btn" id="dfocus">Start focus</button>':'')+'<button class="btn d" id="ddel">Delete habit</button>');
-  mountHM($('dcal'),function(k){return ok(x,k)?4:val(x,k)?2:0},function(k){return val(x,k)+' / '+x.goal+(x.unit==='min'?' min':'')});
+  mountCal($('dcal'),x);
   if($('dfocus'))$('dfocus').onclick=function(){closeSheet();openFocus(id)};
   var armed=false,dd=$('ddel');
   dd.onclick=function(){
@@ -174,8 +191,9 @@ document.addEventListener('visibilitychange',function(){if(document.hidden)retur
   var nt=key(new Date());if(nt!==TODAY){if(sel===TODAY)sel=nt;TODAY=nt;refresh()}tick()});
 
 /* NAV */
-function show(t){tab=t;window.scrollTo(0,0);['today','tasks','stats'].forEach(function(k){$('s-'+k).classList.toggle('hide',k!==t)});
-  [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});tick();refresh();if(t==='stats'&&!drawAllCal.done)drawAllCal.end();runAnim({today:$('list'),tasks:$('tlist'),stats:$('rates')}[t]);if(t==='stats')countUp()}
+function show(t){var prev=tab;tab=t;window.scrollTo(0,0);['today','tasks','stats'].forEach(function(k){$('s-'+k).classList.toggle('hide',k!==t)});
+  [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});tick();refresh();if(t==='stats'&&!drawAllCal.done)drawAllCal.end();runAnim({today:$('list'),tasks:$('tlist'),stats:$('rates')}[t]);if(t==='stats')countUp();slideIn(prev,t)}
+function slideIn(a,b){if(a===b)return;var o=['today','tasks','stats'],c=o.indexOf(b)>o.indexOf(a)?'sl-r':'sl-l',s=$('s-'+b);s.classList.remove('sl-r','sl-l');void s.offsetWidth;s.classList.add(c);setTimeout(function(){s.classList.remove(c)},380)}
 $('nav').onclick=function(e){var b=e.target.closest('[data-t]');if(b)show(b.dataset.t)};
 function refresh(){drawToday();drawTasks();drawStats();if(rv!=='o')drawReport()}
 
@@ -263,3 +281,7 @@ function devInfo(){var p=document.createElement('div');p.style.cssText='position
   $('dev').textContent=(isStandalone()?'app mode':'browser')+' · view '+innerWidth+'×'+innerHeight+' · app '+document.body.clientHeight+' · screen '+screen.width+'×'+screen.height+' · safe top '+t+' / bottom '+b}
 devInfo();
 window.addEventListener('resize',devInfo);
+
+/* app-like: no pinch / double-tap zoom */
+['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
