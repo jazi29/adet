@@ -13,7 +13,7 @@ function fmt(ms){ms=Math.max(0,Math.ceil(ms/1000));var m=Math.floor(ms/60),s=ms%
 function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
 function mondayOf(d){var x=new Date(d);x.setHours(12);return addD(x,-((x.getDay()+6)%7))}
 var TODAY=key(new Date()),sel=TODAY,tab='today',dur=25,timer=null;
-var popId=null,newTaskId=null,rv='o',ro=0;
+var popId=null,newTaskId=null,rv='o',ro=0,calSel='all';
 function buzz(){try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
 function runAnim(el){if(!el)return;el.classList.remove('anim');void el.offsetWidth;el.classList.add('anim');setTimeout(function(){el.classList.remove('anim')},800)}
 function countUp(){var el=$('bp'),to=+el.dataset.v||0,t0=performance.now();(function f(t){var k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.innerHTML=Math.round(to*e)+'<small>%</small>';if(k<1)requestAnimationFrame(f)})(t0)}
@@ -57,23 +57,31 @@ function mountHM(el,f,txt){
   draw.end=function(){draw.done=true};
   el.onclick=function(e){var k=e.target.dataset.k;if(!k||k>TODAY)return;el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+txt(k)};
   draw();return draw}
-function mountCal(el,x){
+function mountCal(el,get){
   var cur=new Date();cur=new Date(cur.getFullYear(),cur.getMonth(),1,12);
+  function info(k){var x=get();
+    if(x){var v=val(x,k),d=ok(x,k);return {dn:d,pt:!d&&v>0,txt:v+' / '+x.goal+(x.unit==='min'?' min':'')}}
+    var n=S.habits.length,c=nOk(k);return {dn:n>0&&c===n,pt:c>0&&c<n,txt:c+' of '+n+' habits'}}
   function draw(){
-    var y=cur.getFullYear(),m=cur.getMonth(),first=new Date(y,m,1,12),dim=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7,done=0,days=0,cells='',now=new Date();
+    var x=get(),y=cur.getFullYear(),m=cur.getMonth(),first=new Date(y,m,1,12),dim=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7,done=0,days=0,cells='',now=new Date();
     for(var i=0;i<off;i++)cells+='<div class="mc e"></div>';
-    for(var d=1;d<=dim;d++){var k=key(new Date(y,m,d,12)),fu=k>TODAY,dn=!fu&&ok(x,k),pt=!fu&&!dn&&val(x,k)>0;
-      if(!fu){days++;if(dn)done++}
-      cells+='<div class="mc'+(dn?' d':pt?' p':'')+(fu?' f':'')+(k===TODAY?' t':'')+'" data-k="'+k+'" style="animation-delay:'+Math.min((off+d)*12,360)+'ms"><span>'+d+'</span></div>'}
+    for(var d=1;d<=dim;d++){var k=key(new Date(y,m,d,12)),fu=k>TODAY,f=fu?{dn:false,pt:false}:info(k);
+      if(!fu){days++;if(f.dn)done++}
+      cells+='<div class="mc'+(f.dn?' d':f.pt?' p':'')+(fu?' f':'')+(k===TODAY?' t':'')+'" data-k="'+k+'" style="animation-delay:'+Math.min((off+d)*12,360)+'ms"><span>'+d+'</span></div>'}
     var atNow=y===now.getFullYear()&&m===now.getMonth();
     el.innerHTML='<div class="mh"><button data-m="-1" aria-label="Previous month">‹</button><span>'+first.toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</span><button data-m="1" aria-label="Next month"'+(atNow?' disabled':'')+'>›</button></div>'
       +'<div class="mw">'+WD.map(function(w){return '<i>'+w+'</i>'}).join('')+'</div><div class="mg">'+cells+'</div>'
-      +'<p class="mm"><b>'+done+'</b> of '+days+' days · <b>'+(days?Math.round(done/days*100):0)+'%</b></p><div class="cap"></div>'}
+      +'<p class="mm"><b>'+done+'</b> of '+days+' days'+(x?' · <b>'+(days?Math.round(done/days*100):0)+'%</b>':' with every habit done')+'</p><div class="cap"></div>'}
   el.onclick=function(e){
     var b=e.target.closest('[data-m]');if(b){if(!b.disabled){cur=new Date(cur.getFullYear(),cur.getMonth()+Number(b.dataset.m),1,12);draw()}return}
     var c=e.target.closest('[data-k]');if(!c||c.dataset.k>TODAY)return;var k=c.dataset.k;
-    el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+val(x,k)+' / '+x.goal+(x.unit==='min'?' min':'')};
-  draw()}
+    el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+info(k).txt};
+  draw();return draw}
+function getCalHabit(){if(calSel==='all')return null;var h=hab(calSel);if(!h){calSel='all';return null}return h}
+function drawCalChips(){getCalHabit();
+  $('cchips').innerHTML='<button class="cc'+(calSel==='all'?' on':'')+'" data-h="all">All</button>'+S.habits.map(function(h){return '<button class="cc'+(calSel===h.id?' on':'')+'" data-h="'+h.id+'">'+esc(h.name)+'</button>'}).join('')}
+$('cchips').onclick=function(e){var b=e.target.closest('[data-h]');if(!b)return;calSel=b.dataset.h;drawCalChips();drawMcal()};
+$('rates').onclick=function(e){var r=e.target.closest('[data-h]');if(!r)return;calSel=r.dataset.h;drawCalChips();drawMcal();$('mcal').scrollIntoView({behavior:'smooth',block:'center'})};
 var CK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
 var TI='<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg>';
 
@@ -122,9 +130,9 @@ function detail(id){
   var x=hab(id);if(!x)return;var n30=0;
   for(var i=0;i<30;i++)if(ok(x,key(addD(new Date(),-i))))n30++;
   sheet('<h3>'+esc(x.name)+'</h3><div class="st3"><div><b>'+streakOf(x)+'</b><span>streak</span></div><div><b>'+bestOf(x)+'</b><span>best</span></div><div><b>'+Math.round(n30/30*100)+'%</b><span>last 30 days</span></div></div>'
-   +'<div id="dcal" class="cm"></div>'
+   +'<button class="btn o" id="dcalbtn" style="margin-top:0">View calendar in Stats</button>'
    +(x.unit==='min'?'<button class="btn" id="dfocus">Start focus</button>':'')+'<button class="btn d" id="ddel">Delete habit</button>');
-  mountCal($('dcal'),x);
+  $('dcalbtn').onclick=function(){calSel=id;closeSheet();$('seg2').querySelector('[data-v="o"]').click();show('stats')};
   if($('dfocus'))$('dfocus').onclick=function(){closeSheet();openFocus(id)};
   var armed=false,dd=$('ddel');
   dd.onclick=function(){
@@ -141,9 +149,9 @@ function drawStats(){
   var p=tot?Math.round(done/tot*100):0;
   $('bp').dataset.v=p;$('bp').innerHTML=p+'<small>%</small>';
   $('bl').textContent=n?done+' of '+tot+' check-ins done':'Add habits to see your stats';
-  drawAllCal();
+  drawCalChips();drawMcal();drawAllCal();
   var h='';S.habits.forEach(function(x){var c=0;for(var i=0;i<30;i++)if(ok(x,key(addD(new Date(),-i))))c++;var q=Math.round(c/30*100);
-    h+='<div class="pr"><div><span>'+esc(x.name)+'</span><span>'+q+'%</span></div><div class="bar"><u style="width:'+q+'%"></u></div></div>'});
+    h+='<div class="pr" data-h="'+x.id+'"><div><span>'+esc(x.name)+'</span><span>'+q+'%</span></div><div class="bar"><u style="width:'+q+'%"></u></div></div>'});
   $('rates').innerHTML=h;
   $('k1').textContent=S.sessions.reduce(function(a,s){return a+s.m},0);
   $('k2').textContent=S.sessions.length;
@@ -198,6 +206,7 @@ $('nav').onclick=function(e){var b=e.target.closest('[data-t]');if(b)show(b.data
 function refresh(){drawToday();drawTasks();drawStats();if(rv!=='o')drawReport()}
 
 var drawAllCal=mountHM($('allcal'),function(k){var n=S.habits.length,c=nOk(k),f=n?c/n:0;return f===0?0:f<.5?1:f<.75?2:f<1?3:4},function(k){return nOk(k)+' of '+S.habits.length});
+var drawMcal=mountCal($('mcal'),getCalHabit);
 if(S.run){if(Date.now()>=S.run.end)finish(true);else timer=setInterval(tick,1000)}
 drawChips();drawSel();refresh();tick();runAnim($('list'));
 
@@ -283,5 +292,11 @@ devInfo();
 window.addEventListener('resize',devInfo);
 
 /* app-like: no pinch / double-tap zoom */
-['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
-document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+['gesturestart','gesturechange','gestureend'].forEach(function(t){
+  window.addEventListener(t,function(e){e.preventDefault()},{passive:false,capture:true});
+  document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('touchstart',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',function(e){if((e.touches&&e.touches.length>1)||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});
+var lastTap=0;
+document.addEventListener('touchend',function(e){var n=Date.now();
+  if(n-lastTap<350&&!(e.target.closest&&e.target.closest('button,input,select,textarea,a,label,[data-k],[data-o],[data-h],[data-tc],[data-td]')))e.preventDefault();lastTap=n},{passive:false});

@@ -187,3 +187,8 @@ textarea:focus{border-color:var(--ac2)}
 .nav button.on svg{animation:navpop .42s cubic-bezier(.3,1.6,.5,1)}
 @keyframes navpop{0%{transform:scale(.7) translateY(5px)}}
 .sl b{display:inline-block;animation:numpop .4s cubic-bezier(.3,1.5,.5,1)}@keyframes numpop{from{transform:scale(.8);opacity:.4}}
+
+.cchips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px 12px;padding:0 20px;scrollbar-width:none}.cchips::-webkit-scrollbar{display:none}
+.cc{flex:none;padding:9px 16px;border-radius:999px;background:var(--s2);color:var(--mute);font-weight:600;font-size:15px;border:1px solid var(--line);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
+.pr[data-h]{cursor:pointer}
