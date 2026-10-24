@@ -192,3 +192,17 @@ textarea:focus{border-color:var(--ac2)}
 .cc{flex:none;padding:9px 16px;border-radius:999px;background:var(--s2);color:var(--mute);font-weight:600;font-size:15px;border:1px solid var(--line);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cc.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
 .pr[data-h]{cursor:pointer}
+
+/* weekdays + per-habit activity */
+.lb2{color:var(--mute);font-size:13px;margin:16px 0 8px}
+.dow{display:flex;gap:6px;margin-bottom:4px}
+.dow button{flex:1;height:42px;border-radius:12px;background:var(--s2);color:var(--mute);font-size:13px;font-weight:600;border:1px solid var(--line);transition:background-color .2s,color .2s,transform .12s}
+.dow button.on{background:var(--ac2);color:#fff;border-color:var(--ac2)}
+.sheet .dow+.btn{margin-top:18px}
+.secrow{display:flex;align-items:center;justify-content:space-between}
+.lnk{color:var(--ac);font-weight:600;font-size:15px;padding:4px 0}
+.hint{color:var(--mute);font-size:13px;margin:-6px 0 12px}
+.st3.s4 b{font-size:24px}.st3.s4{margin-bottom:12px;animation:fadeIn .3s}
+.pr.sel>div:first-child span:first-child{color:var(--ac)}
+.pr.sel .bar u{background:#56d364}
+.pr{transition:background-color .15s}.pr:active{background:var(--s2)}
