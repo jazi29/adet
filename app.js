@@ -66,7 +66,7 @@ function mountHM(el,f,txt){
   el.onclick=function(e){var k=e.target.dataset.k;if(!k||k>TODAY)return;el.querySelector('.cap').textContent=new Date(k+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'})+' — '+txt(k)};
   draw();return draw}
 $('rates').onclick=function(e){var r=e.target.closest('[data-h]');if(!r)return;var id=r.dataset.h;actSel=actSel===id?'all':id;drawStats();
-  if(actSel!=='all')$('allcal').scrollIntoView({behavior:'smooth',block:'center'})};
+  if(actSel!=='all')$('acth').parentNode.scrollIntoView({behavior:'smooth',block:'start'})};
 $('actall').onclick=function(){actSel='all';drawStats()};
 var CK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
 var TI='<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2.5h6"/></svg>';
