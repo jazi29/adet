@@ -33,7 +33,10 @@ function streakOf(h){var d=new Date(),n=0,t=key(d);if(sched(h,t)&&!ok(h,t))d=add
   for(var g=0;g<800;g++){var k=key(d);if(ok(h,k))n++;else if(sched(h,k))break;d=addD(d,-1)}return n}
 function bestOf(h){var ks=Object.keys(h.log).filter(function(k){return ok(h,k)}).sort();if(!ks.length)return 0;var d=new Date(ks[0]+'T12:00:00'),b=0,c=0;
   for(var g=0;g<2000;g++){var k=key(d);if(k>TODAY)break;if(ok(h,k)){c++;if(c>b)b=c}else if(sched(h,k))c=0;d=addD(d,1)}return b}
-function taskRow(t){return '<div class="row'+(newTaskId===t.id?' new':'')+'"><button class="ck sq'+(t.done?' on':'')+(popId===t.id&&t.done?' pop':'')+'" data-tc="'+t.id+'" aria-label="Mark done">'+CK+'</button><div class="m"><div class="n'+(t.done?' dn':'')+'">'+esc(t.title)+'</div></div><button class="ib" data-td="'+t.id+'" aria-label="Delete"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>'}
+var UP='<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>',DN='<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+function taskRow(t,i,arr){var mv='';
+  if(!t.done&&arr&&arr.length>1)mv='<div class="mv"><button data-mu="'+t.id+'" aria-label="Move up"'+(i===0?' disabled':'')+'>'+UP+'</button><button data-md="'+t.id+'" aria-label="Move down"'+(i===arr.length-1?' disabled':'')+'>'+DN+'</button></div>';
+  return '<div class="row'+(newTaskId===t.id?' new':'')+'"><button class="ck sq'+(t.done?' on':'')+(popId===t.id&&t.done?' pop':'')+'" data-tc="'+t.id+'" aria-label="Mark done">'+CK+'</button><div class="m"><div class="n'+(t.done?' dn':'')+'">'+esc(t.title)+'</div></div>'+mv+'<button class="ib" data-td="'+t.id+'" aria-label="Delete"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>'}
 function drawTasks(){
   var a=S.tasks.filter(function(t){return !t.done}),d=S.tasks.filter(function(t){return t.done});
   var h=a.length?a.map(taskRow).join(''):'<div class="empty">No tasks.<br>Add your first one above.</div>';
@@ -41,8 +44,16 @@ function drawTasks(){
   $('tlist').innerHTML=h;
 }
 function addTask(){var v=$('tin').value.trim();if(!v){$('tin').focus();return}var nid='t'+Date.now();S.tasks.push({id:nid,title:v,done:false});newTaskId=nid;$('tin').value='';save();drawTasks();newTaskId=null}
+function moveTask(id,dir){
+  var idx=[],p=-1;S.tasks.forEach(function(t,i){if(!t.done)idx.push(i)});
+  idx.forEach(function(i,n){if(S.tasks[i].id===id)p=n});
+  var q=p+dir;if(p<0||q<0||q>=idx.length)return;
+  var a=idx[p],b=idx[q],t=S.tasks[a];S.tasks[a]=S.tasks[b];S.tasks[b]=t;
+  buzz();newTaskId=id;save();drawTasks();newTaskId=null}
 $('tadd').onclick=addTask;$('tin').onkeydown=function(e){if(e.key==='Enter')addTask()};
 $('tlist').onclick=function(e){
+  var mu=e.target.closest('[data-mu]');if(mu){if(!mu.disabled)moveTask(mu.dataset.mu,-1);return}
+  var md=e.target.closest('[data-md]');if(md){if(!md.disabled)moveTask(md.dataset.md,1);return}
   var c=e.target.closest('[data-tc]');if(c){var t=S.tasks.filter(function(x){return x.id===c.dataset.tc})[0];if(t){t.done=!t.done;if(t.done){popId=t.id;buzz()}save();drawTasks();popId=null}return}
   var x=e.target.closest('[data-td]');if(x){var row=x.closest('.row'),id=x.dataset.td;row.classList.add('gone');setTimeout(function(){S.tasks=S.tasks.filter(function(t){return t.id!==id});save();drawTasks()},200);return}
   if(e.target.closest('[data-clr]')){S.tasks=S.tasks.filter(function(t){return !t.done});save();drawTasks()}};
@@ -300,3 +311,7 @@ document.addEventListener('touchmove',function(e){if((e.touches&&e.touches.lengt
 var lastTap=0;
 document.addEventListener('touchend',function(e){var n=Date.now();
   if(n-lastTap<350&&!(e.target.closest&&e.target.closest('button,input,select,textarea,a,label,[data-k],[data-o],[data-h],[data-tc],[data-td]')))e.preventDefault();lastTap=n},{passive:false});
+
+/* offline: service worker */
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}

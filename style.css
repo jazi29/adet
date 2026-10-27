@@ -246,3 +246,10 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;height:340px;backgro
 .dow button.on{background:linear-gradient(180deg,#2ea043,#238636)}
 .pr.sel{background:rgba(46,160,67,.09);margin:0 -18px;padding-left:18px;padding-right:18px;border-radius:14px;border-bottom-color:transparent}
 .secrow{scroll-margin-top:12px}
+
+/* move task up / down */
+.mv{display:flex;flex-direction:column;flex:none;gap:2px;margin-right:-4px}
+.mv button{width:40px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--mute);border-radius:9px}
+.mv button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mv button:disabled{opacity:.22}
+.mv button:not(:disabled):active{background:var(--s2);color:var(--ink)}
