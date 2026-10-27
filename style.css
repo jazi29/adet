@@ -247,9 +247,17 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;height:340px;backgro
 .pr.sel{background:rgba(46,160,67,.09);margin:0 -18px;padding-left:18px;padding-right:18px;border-radius:14px;border-bottom-color:transparent}
 .secrow{scroll-margin-top:12px}
 
-/* move task up / down */
-.mv{display:flex;flex-direction:column;flex:none;gap:2px;margin-right:-4px}
-.mv button{width:40px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--mute);border-radius:9px}
-.mv button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.mv button:disabled{opacity:.22}
-.mv button:not(:disabled):active{background:var(--s2);color:var(--ink)}
+/* habit checkbox: hold-to-fill */
+.ck{position:relative;overflow:hidden;transition:background-color .2s,border-color .2s,transform .15s}
+.ck svg{position:relative}
+.ck .fl{position:absolute;inset:0;background:linear-gradient(180deg,#2ea043,#238636);transform:scaleY(var(--p,0));transform-origin:50% 100%;pointer-events:none}
+.ck.on .fl{background:#171d25}
+.ck.rel .fl{transition:transform .25s ease-out}
+.ck.hold{transform:scale(.92)}
+.ck.hold:not(.on) svg{opacity:calc((var(--p,0) - .5)*2)}
+.ck.hold.on svg{opacity:calc(1 - var(--p,0)*1.6)}
+
+/* long-press reorder */
+.row[data-r]{touch-action:pan-y}
+.row.arm{transform:scale(.985)}
+.row.lift{position:relative;z-index:5;transition:box-shadow .2s;border-color:var(--ac2);box-shadow:0 16px 36px rgba(0,0,0,.55)}
