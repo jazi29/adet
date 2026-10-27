@@ -88,7 +88,7 @@ function drawToday(){
     if(st)s+=(s?' · ':'')+st+' '+pl(st)+' in a row';var sl=schedLabel(x);if(sl)s+=(s?' · ':'')+sl;
     h+='<div class="row" data-o="'+x.id+'"><div class="m"><div class="n">'+esc(x.name)+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'
       +(x.unit==='min'?'<button class="ib" data-f="'+x.id+'" aria-label="Focus">'+TI+'</button>':'')
-      +'<button class="ck sq'+(ok(x,sel)?' on':v?' part':'')+(popId===x.id&&ok(x,sel)?' pop':'')+'" data-c="'+x.id+'"'+(sel===TODAY?'':' disabled')+' aria-label="Check in"><i class="fl"></i>'+CK+'</button></div>'});
+      +'<button class="ck sq'+(ok(x,sel)?' on':v?' part':'')+(popId===x.id&&ok(x,sel)?' pop':'')+'" data-c="'+x.id+'"'+(sel===TODAY?'':' disabled')+' aria-label="Check in">'+'</button></div>'});
   if(S.habits.length)h+='<button class="addrow" data-add="1">+ New habit</button>';
   var dn=vis.filter(function(x){return ok(x,sel)}).length,tt=vis.length,sm=$('sum');
   sm.classList.toggle('hide',!tt);
@@ -98,7 +98,7 @@ function drawToday(){
 $('week').onclick=function(e){var b=e.target.closest('[data-d]');if(b){sel=b.dataset.d;drawToday()}};
 $('list').onclick=function(e){
   if(e.target.closest('[data-add]')){addSheet();return}
-  var c=e.target.closest('[data-c]');if(c){if(e.detail===0&&sel===TODAY)checkIn(c.dataset.c);return}
+  var c=e.target.closest('[data-c]');if(c){if(sel===TODAY)checkIn(c.dataset.c);return}
   var f=e.target.closest('[data-f]');if(f){openFocus(f.dataset.f);return}
   var o=e.target.closest('[data-o]');if(o)detail(o.dataset.o)};
 
@@ -254,32 +254,8 @@ $('seg2').onclick=function(e){var v=e.target.dataset.v;if(!v)return;rv=v;ro=0;
   $('stp').textContent={o:'last 30 days',w:'weekly report',m:'monthly report',y:'yearly report'}[v];
   if(v!=='o')drawReport()};
 
-/* ---------- hold to check in (habits) ---------- */
-var HOLD=1200,hold=null,hintAt=0;
 function vib(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
-function checkIn(id){var hx=hab(id);if(!hx)return;bump(hx,sel);if(ok(hx,sel))popId=hx.id;save();refresh();popId=null}
-function holdTick(){
-  var H=hold;if(!H)return;var now=performance.now(),p=Math.min(1,(now-H.t0)/HOLD);
-  H.b.style.setProperty('--p',p);
-  if(now-H.last>110){H.last=now;vib(6+Math.round(p*18))}
-  if(p>=1){finishHold();return}
-  H.raf=requestAnimationFrame(holdTick)}
-function finishHold(){
-  var H=hold;hold=null;cancelAnimationFrame(H.raf);
-  H.b.classList.remove('hold');H.b.style.removeProperty('--p');
-  checkIn(H.id);vib([30,40,60])}
-function cancelHold(){
-  var H=hold;if(!H)return;hold=null;cancelAnimationFrame(H.raf);vib(0);
-  var b=H.b,short=performance.now()-H.t0<250;
-  b.classList.remove('hold');b.classList.add('rel');b.style.setProperty('--p',0);
-  setTimeout(function(){b.classList.remove('rel')},300);
-  if(short&&Date.now()-hintAt>4000){hintAt=Date.now();toast('Hold to check in')}}
-$('list').addEventListener('pointerdown',function(e){
-  var b=e.target.closest('[data-c]');
-  if(!b||b.disabled||sel!==TODAY||hold||(e.pointerType==='mouse'&&e.button!==0))return;
-  var h=hab(b.dataset.c);if(!h)return;
-  hold={b:b,id:h.id,t0:performance.now(),last:performance.now(),x:e.clientX,y:e.clientY};
-  b.classList.add('hold');vib(8);hold.raf=requestAnimationFrame(holdTick)});
+function checkIn(id){var hx=hab(id);if(!hx)return;bump(hx,sel);if(ok(hx,sel)){popId=hx.id;buzz()}save();refresh();popId=null}
 
 /* ---------- long press to reorder tasks ---------- */
 var drag=null,pend=null;
@@ -318,13 +294,12 @@ $('tlist').addEventListener('pointerdown',function(e){
 
 document.addEventListener('pointermove',function(e){
   if(pend&&(Math.abs(e.clientX-pend.x)>9||Math.abs(e.clientY-pend.y)>9))cancelPend();
-  if(hold&&(Math.abs(e.clientX-hold.x)>12||Math.abs(e.clientY-hold.y)>12))cancelHold();
   if(drag&&e.pointerId===drag.pid){drag.cy=e.clientY;moveDrag()}});
-function releaseAll(){cancelPend();cancelHold();endDrag()}
+function releaseAll(){cancelPend();endDrag()}
 document.addEventListener('pointerup',releaseAll);
 document.addEventListener('pointercancel',releaseAll);
 document.addEventListener('touchmove',function(e){if(drag)e.preventDefault()},{passive:false});
-['list','tlist'].forEach(function(id){$(id).addEventListener('contextmenu',function(e){e.preventDefault()})});
+$('tlist').addEventListener('contextmenu',function(e){e.preventDefault()});
 
 /* ---------- backup: export / import ---------- */
 function isStandalone(){return navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)}

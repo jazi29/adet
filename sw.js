@@ -1,7 +1,7 @@
 /* Offline support.
    App files: network first (always fresh when online), cached copy when offline or the network is slow.
    Google Fonts: cached on first load, used offline. */
-var CACHE='habits-app-v1',FONTS='habits-fonts-v1';
+var CACHE='habits-app-v2',FONTS='habits-fonts-v1';
 var CORE=['./','index.html','style.css','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-maskable-512.png'];
 var SCOPE=self.registration.scope;
 
@@ -25,7 +25,7 @@ function netFirst(req){
   return caches.open(CACHE).then(function(c){
     return c.match(key).then(function(hit){
       var fallback=hit?Promise.resolve(hit):(req.mode==='navigate'?c.match(keyOf('index.html')):Promise.resolve(undefined));
-      var net=fetch(req).then(function(res){if(res&&res.ok)c.put(key,res.clone());return res});
+      var net=fetch(req,{cache:'no-cache'}).then(function(res){if(res&&res.ok)c.put(key,res.clone());return res});
       return fallback.then(function(fb){
         if(!fb)return net;
         /* slow or no connection: serve the cached copy */
