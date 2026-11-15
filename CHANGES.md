@@ -26,3 +26,18 @@ B3 tabs sync, B6 createdAt, B7 schedule history, B8/B10 dates, PWA/a11y items, e
 ## Deploy notes
 - Copy the files over the repo, commit, push (Vercel deploys). The service worker is network-first, so the phone picks up v=21 on next open.
 - The home-screen icon keeps its old name ("Habits"). Do NOT delete and re-add it: on iOS that creates an empty new storage container. Rename it manually in Home Screen edit mode if desired, or re-add only after exporting a backup and importing it into the new one.
+
+---
+# Stage 2: cloud copy (Supabase)
+
+New file `cloud.js` (no libraries, plain fetch), new "Cloud" card in Stats (above Data). `app.js` is not changed in this step.
+
+- **Sign in / Create account** with email + password. Session is stored in its own key `adet_auth`, never inside backups.
+- **Upload to cloud:** shows what this device has, then adds/updates it in the database, then reads everything back and verifies. Idempotent (running it twice creates no duplicates). Never deletes anything locally or in the cloud.
+- **Restore from cloud:** loads the cloud copy into the existing import screen (preview, Replace needs two taps, automatic `streak2_preimport` snapshot, or Merge).
+- Local ids are kept as `legacy_id` in the database, so every device uses the same ids.
+- `sw.js`: only change is adding `cloud.js` to the offline file list.
+
+Supabase: run `supabase/patch_1.sql` once (fixes indexes so upsert works, adds `legacy_key` for sessions).
+
+Not yet (next step): automatic two-way sync, deletions propagating between devices.

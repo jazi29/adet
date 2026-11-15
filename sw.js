@@ -2,7 +2,7 @@
    App files: network first (always fresh when online), cached copy when offline or the network is slow.
    Google Fonts: cached on first load, used offline. */
 var CACHE='habits-app-v2',FONTS='habits-fonts-v1';
-var CORE=['./','index.html','style.css','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-maskable-512.png'];
+var CORE=['./','index.html','style.css','app.js','cloud.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-maskable-512.png'];
 var SCOPE=self.registration.scope;
 
 function keyOf(u){var x=new URL(u,SCOPE);return x.origin+x.pathname}
