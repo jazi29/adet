@@ -1,11 +1,32 @@
 var WD=['Mo','Tu','We','Th','Fr','Sa','Su'];
-var S={habits:[],sessions:[],run:null};
-try{var raw=localStorage.getItem('streak2')||localStorage.getItem('streak1');if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
-S.habits.forEach(function(h,i){if(!h.id)h.id='h'+Date.now()+i;
+var S={habits:[],sessions:[],run:null},loadErr=null;
+/* ids end up inside HTML attributes, so only a safe alphabet is allowed; invalid or duplicate ids are replaced */
+var IDOK=/^[A-Za-z0-9_-]{1,64}$/;
+function cleanId(id,pre,i,used){id=String(id==null?'':id);
+  if(!IDOK.test(id)||used[id]){var b=pre+Date.now()+'_'+i,n=0;id=b;while(used[id])id=b+'_'+(++n)}
+  used[id]=1;return id}
+try{var raw=localStorage.getItem('streak2')||localStorage.getItem('streak1');
+  if(raw){var P0;try{P0=JSON.parse(raw)}catch(e0){loadErr='parse'}
+    if(!loadErr&&(!P0||typeof P0!=='object'||Array.isArray(P0)))loadErr='shape';
+    if(loadErr){/* unreadable data: keep a copy of the raw text, never silently overwrite the only copy */
+      try{if(!localStorage.getItem('streak2_corrupt'))localStorage.setItem('streak2_corrupt',raw)}catch(e1){}}
+    else S=Object.assign(S,P0)}}catch(e){}
+if(!Array.isArray(S.habits))S.habits=[];
+if(!Array.isArray(S.sessions))S.sessions=[];
+if(!Array.isArray(S.tasks))S.tasks=[];
+S.habits=S.habits.filter(function(h){return h&&typeof h==='object'});
+(function(){var used={},idm={};
+  S.habits.forEach(function(h,i){var old=String(h.id==null?'':h.id);h.id=cleanId(h.id,'h',i,used);if(old&&!(old in idm))idm[old]=h.id});
+  S.sessions.forEach(function(s){if(s&&s.h!=null)s.h=idm[String(s.h)]||null});
+  if(S.run&&S.run.h!=null)S.run.h=idm[String(S.run.h)]||null;
+  var tu={};S.tasks=S.tasks.filter(function(t){return t&&typeof t==='object'});S.tasks.forEach(function(t,i){t.id=cleanId(t.id,'t',i,tu)})})();
+S.habits.forEach(function(h){
   if(!h.log){h.log={};(h.days||[]).forEach(function(k){h.log[k]=1});h.goal=1;h.unit='x';delete h.days}});
-S.tasks=S.tasks||[];
 if(S.run&&typeof S.run.h==='number')S.run=null;
-function save(){try{localStorage.setItem('streak2',JSON.stringify(S))}catch(e){}}
+var saveWarned=0;
+function save(){try{localStorage.setItem('streak2',JSON.stringify(S));return true}
+  catch(e){var n=Date.now();if(n-saveWarned>8000){saveWarned=n;toast('Could not save. Export a backup now')}return false}}
+function snap(){try{localStorage.setItem('streak2_preimport',JSON.stringify(S))}catch(e){}}
 var $=function(i){return document.getElementById(i)};
 var key=function(d){return d.toLocaleDateString('sv')};
 function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -308,9 +329,9 @@ function backupJSON(){return JSON.stringify({app:'habits',version:2,exported:new
 function copyText(txt,ta){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast('Copied')},function(){fallbackCopy()});return}}catch(e){}fallbackCopy();
   function fallbackCopy(){ta.focus();ta.select();ta.setSelectionRange(0,txt.length+1);var ok2=false;try{ok2=document.execCommand('copy')}catch(e){}toast(ok2?'Copied':'Select the text and copy it manually')}}
 $('exp').onclick=function(){
-  var data=backupJSON(),name='habits-backup-'+key(new Date())+'.json';
+  var data=backupJSON(),name='adet-backup-'+key(new Date())+'.json';
   try{var f=new File([data],name,{type:'application/json'});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Habits backup'}).catch(function(){});return}}catch(e){}
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'ADET backup'}).catch(function(){});return}}catch(e){}
   if(!isStandalone()){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);toast('Backup downloaded');return}
   sheet('<h3>Backup</h3><p class="note" style="margin:0">Copy this text and keep it somewhere safe (Notes, a message to yourself). You can paste it back with Import.</p><textarea id="bk" readonly></textarea><button class="btn" id="bkc">Copy backup</button>');
   $('bk').value=data;$('bkc').onclick=function(){copyText(data,$('bk'))}};
@@ -319,20 +340,30 @@ $('impb').onclick=function(){
   $('ipf').onclick=function(){$('imp').click()};
   $('ipg').onclick=function(){var v=$('ipt').value.trim();if(!v){$('ipt').focus();return}importData(v)}};
 $('imp').onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;var r=new FileReader();r.onload=function(){importData(String(r.result))};r.onerror=function(){toast('Could not read the file')};r.readAsText(f)};
+var DKEY=/^\d{4}-\d{2}-\d{2}$/;
+function cleanLog(l){var o={};if(l&&typeof l==='object'&&!Array.isArray(l))for(var k in l){var v=Math.round(+l[k]);if(DKEY.test(k)&&isFinite(v)&&v>0)o[k]=Math.min(v,100000)}return o}
+function cleanDow(a){if(!Array.isArray(a))return undefined;var r=[];a.forEach(function(n){n=+n;if(n%1===0&&n>=0&&n<=6&&r.indexOf(n)<0)r.push(n)});r.sort();return(r.length&&r.length<7)?r:undefined}
 function importData(txt){
   var d;try{d=JSON.parse(txt)}catch(e){toast('This is not a valid backup');return}
   if(!d||!Array.isArray(d.habits)){toast('This is not a valid backup');return}
-  var hs=d.habits.filter(function(h){return h&&h.name}).map(function(h,i){return {id:String(h.id||'h'+Date.now()+i),name:String(h.name).slice(0,30),unit:h.unit==='min'?'min':'x',goal:Math.max(1,parseInt(h.goal)||1),log:(h.log&&typeof h.log==='object')?h.log:{},dow:(Array.isArray(h.dow)&&h.dow.length&&h.dow.length<7)?h.dow.filter(function(n){return n>=0&&n<=6}).sort():undefined}});
-  var ts=(Array.isArray(d.tasks)?d.tasks:[]).filter(function(t){return t&&t.title}).map(function(t,i){return {id:String(t.id||'t'+Date.now()+i),title:String(t.title).slice(0,60),done:!!t.done}});
-  var ss=(Array.isArray(d.sessions)?d.sessions:[]).filter(function(s){return s&&s.d&&+s.m>0}).map(function(s){return {d:String(s.d),m:+s.m,h:s.h||null}});
+  var hu={},idm={};
+  var hs=d.habits.filter(function(h){return h&&h.name}).map(function(h,i){var nid=cleanId(h.id,'h',i,hu),oid=String(h.id==null?'':h.id);if(oid&&!(oid in idm))idm[oid]=nid;
+    return {id:nid,name:String(h.name).slice(0,30),unit:h.unit==='min'?'min':'x',goal:Math.max(1,parseInt(h.goal)||1),log:cleanLog(h.log),dow:cleanDow(h.dow)}});
+  var tu={};
+  var ts=(Array.isArray(d.tasks)?d.tasks:[]).filter(function(t){return t&&t.title}).map(function(t,i){return {id:cleanId(t.id,'t',i,tu),title:String(t.title).slice(0,60),done:!!t.done}});
+  var ss=(Array.isArray(d.sessions)?d.sessions:[]).filter(function(s){return s&&DKEY.test(String(s.d))&&(Math.round(+s.m)||0)>0}).map(function(s){return {d:String(s.d),m:Math.min(Math.round(+s.m),1440),h:(s.h!=null&&idm[String(s.h)])||null}});
   sheet('<h3>Import backup</h3><p class="note" style="margin:0 0 4px">Found '+hs.length+' habits, '+ts.length+' tasks and '+ss.length+' focus sessions.</p><button class="btn" id="imr">Replace my data</button><button class="btn o" id="imm">Merge with my data</button>');
   function end(){S.run=null;clearInterval(timer);save();closeSheet();refresh();tick();toast('Data imported')}
-  $('imr').onclick=function(){S.habits=hs;S.tasks=ts;S.sessions=ss;end()};
+  var armed=false;
+  $('imr').onclick=function(){var b=this;
+    if(!armed){armed=true;b.textContent='Tap again to replace all current data';setTimeout(function(){armed=false;if(document.body.contains(b))b.textContent='Replace my data'},4000);return}
+    snap();S.habits=hs;S.tasks=ts;S.sessions=ss;end()};
   $('imm').onclick=function(){
+    snap();
     hs.forEach(function(h){var e=hab(h.id);if(!e)S.habits.push(h);else for(var k in h.log){if(!(k in e.log)||h.log[k]>e.log[k])e.log[k]=h.log[k]}});
     ts.forEach(function(t){if(!S.tasks.some(function(x){return x.id===t.id}))S.tasks.push(t)});
     var seen={};S.sessions.forEach(function(s){seen[s.d+'|'+s.m+'|'+s.h]=1});ss.forEach(function(s){if(!seen[s.d+'|'+s.m+'|'+s.h])S.sessions.push(s)});end()}}
-function devInfo(){var p=document.createElement('div');p.style.cssText='position:absolute;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(p);
+function devInfo(){if(!/[?&]debug\b/.test(location.search)){$('dev').style.display='none';return}var p=document.createElement('div');p.style.cssText='position:absolute;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(p);
   var cs=getComputedStyle(p),t=parseFloat(cs.paddingTop)||0,b=parseFloat(cs.paddingBottom)||0;p.remove();
   $('dev').textContent=(isStandalone()?'app mode':'browser')+' · view '+innerWidth+'×'+innerHeight+' · app '+document.body.clientHeight+' · screen '+screen.width+'×'+screen.height+' · safe top '+t+' / bottom '+b}
 devInfo();
@@ -347,6 +378,8 @@ document.addEventListener('touchmove',function(e){if((e.touches&&e.touches.lengt
 var lastTap=0;
 document.addEventListener('touchend',function(e){var n=Date.now();
   if(n-lastTap<350&&!(e.target.closest&&e.target.closest('button,input,select,textarea,a,label,[data-k],[data-o],[data-h],[data-tc],[data-td]')))e.preventDefault();lastTap=n},{passive:false});
+
+if(loadErr)setTimeout(function(){toast('Saved data could not be read. A copy was kept')},700);
 
 /* offline: service worker */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
