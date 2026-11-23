@@ -19,14 +19,14 @@ var busy=false,running=null,dirty=false,timer=null,status='',lastOk=0,lastTry=0;
 function setAuth(a){auth=a;try{if(a)localStorage.setItem(AK,JSON.stringify(a));else localStorage.removeItem(AK)}catch(e){}}
 function setSession(j){if(!j||!j.access_token)throw new Error('No session returned. Check the email and password');
   setAuth({at:j.access_token,rt:j.refresh_token,exp:Date.now()+(+j.expires_in||3600)*1000,email:(j.user&&j.user.email)||(auth&&auth.email)||''})}
-function isNet(e){return e&&e.name==='TypeError'}
-function errText(e){return isNet(e)?'No connection':(e&&e.message)||'Something went wrong'}
+function isNet(e){return !!(e&&e.net)}   /* only a failed fetch counts as 'no connection'; real code errors keep their message */
+function errText(e){return (e&&e.message)||'Something went wrong'}
 function msgOf(j,st){return (j&&(j.msg||j.error_description||j.message||(typeof j.error==='string'&&j.error)))||('Error '+st)}
 function api(path,o){o=o||{};var h={apikey:PK,'Content-Type':'application/json'};
   if(o.token)h.Authorization='Bearer '+o.token;if(o.prefer)h.Prefer=o.prefer;
   return fetch(API+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
     return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null}catch(e){}
-      if(!r.ok)throw new Error(msgOf(j,r.status));return j})})}
+      if(!r.ok)throw new Error(msgOf(j,r.status));return j})},function(e){var x=new Error('No connection to the server ('+(e&&e.message||'fetch failed')+')');x.net=true;throw x})}
 function token(){
   if(!auth)return Promise.reject(new Error('Sign in first'));
   if(auth.exp-Date.now()>60000)return Promise.resolve(auth.at);
