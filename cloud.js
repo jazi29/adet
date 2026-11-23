@@ -72,8 +72,10 @@ function cloudState(R){var o={h:{},t:{},l:{},s:{},to:[],hs:[]},u2l={},l2u={},dea
   R.tasks.forEach(function(r){if(r.deleted_at)return;var id=r.legacy_id||r.id;o.t['_'+id]=tval(r.title,r.done);o.to.push(id)});
   R.sess.forEach(function(r){if(r.deleted_at||!r.legacy_key||(r.habit_id&&dead[r.habit_id]))return;o.s['_'+r.legacy_key]='1'});
   o.l2u=l2u;return o}
-function loadBase(){try{var b=JSON.parse(localStorage.getItem(BK));if(b&&b.h&&b.t&&b.l&&b.s)return b}catch(e){}return {h:{},t:{},l:{},s:{},to:[],none:true}}
-function setBase(st){try{localStorage.setItem(BK,JSON.stringify({h:st.h,t:st.t,l:st.l,s:st.s,to:st.to,at:Date.now()}))}catch(e){}}
+/* the baseline belongs to ONE account: after signing in as a different user it is ignored (nothing gets deleted because of it) */
+function uidOf(){try{var p=auth.at.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(atob(p)).sub||''}catch(e){return ''}}
+function loadBase(){try{var b=JSON.parse(localStorage.getItem(BK));if(b&&b.h&&b.t&&b.l&&b.s&&b.uid&&b.uid===uidOf())return b}catch(e){}return {h:{},t:{},l:{},s:{},to:[],none:true}}
+function setBase(st){try{localStorage.setItem(BK,JSON.stringify({uid:uidOf(),h:st.h,t:st.t,l:st.l,s:st.s,to:st.to,at:Date.now()}))}catch(e){}}
 function resetBase(){try{localStorage.removeItem(BK)}catch(e){}}
 
 /* ---------- 3-way merge of one class ---------- */
