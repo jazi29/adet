@@ -24,8 +24,11 @@ S.habits.forEach(function(h){
   if(!h.log){h.log={};(h.days||[]).forEach(function(k){h.log[k]=1});h.goal=1;h.unit='x';delete h.days}});
 if(S.run&&typeof S.run.h==='number')S.run=null;
 var saveWarned=0;
-function save(){try{localStorage.setItem('streak2',JSON.stringify(S));return true}
-  catch(e){var n=Date.now();if(n-saveWarned>8000){saveWarned=n;toast('Could not save. Export a backup now')}return false}}
+function save(){var ok=false;
+  try{localStorage.setItem('streak2',JSON.stringify(S));ok=true}
+  catch(e){var n=Date.now();if(n-saveWarned>8000){saveWarned=n;toast('Could not save. Export a backup now')}}
+  if(ok&&window.Cloud&&!window.__cloudApply){try{Cloud.changed()}catch(e2){}}
+  return ok}
 function snap(){try{localStorage.setItem('streak2_preimport',JSON.stringify(S))}catch(e){}}
 var $=function(i){return document.getElementById(i)};
 var key=function(d){return d.toLocaleDateString('sv')};
@@ -357,7 +360,7 @@ function importData(txt){
   var armed=false;
   $('imr').onclick=function(){var b=this;
     if(!armed){armed=true;b.textContent='Tap again to replace all current data';setTimeout(function(){armed=false;if(document.body.contains(b))b.textContent='Replace my data'},4000);return}
-    snap();S.habits=hs;S.tasks=ts;S.sessions=ss;end()};
+    snap();if(window.Cloud&&Cloud.resetBase)Cloud.resetBase();S.habits=hs;S.tasks=ts;S.sessions=ss;end()};
   $('imm').onclick=function(){
     snap();
     hs.forEach(function(h){var e=hab(h.id);if(!e)S.habits.push(h);else for(var k in h.log){if(!(k in e.log)||h.log[k]>e.log[k])e.log[k]=h.log[k]}});

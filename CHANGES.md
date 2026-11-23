@@ -41,3 +41,25 @@ New file `cloud.js` (no libraries, plain fetch), new "Cloud" card in Stats (abov
 Supabase: run `supabase/patch_1.sql` once (fixes indexes so upsert works, adds `legacy_key` for sessions).
 
 Not yet (next step): automatic two-way sync, deletions propagating between devices.
+
+---
+# Stage 3: automatic two-way sync
+
+`cloud.js` rewritten; `app.js` got two tiny hooks (call sync after `save()`, reset the sync baseline on import-Replace). Local data format is unchanged. No new SQL.
+
+## How it works
+- Sync runs: when the app opens, when you return to it, when the network comes back, ~2.5 s after any change, and with "Sync now".
+- 3-way merge per item (habit, task, check-in, focus session) between this device, the cloud and a baseline of the last sync (`adet_base`, not part of backups).
+- Merge rules: only one side changed -> that change wins; edit beats delete (nothing is lost); two different check-in values -> the larger; two different edits of one habit/task -> this device wins; task order follows whoever reordered.
+- The running Focus timer stays on the device.
+
+## Safety
+- A device with no baseline never deletes anything (it only adds).
+- If a sync would remove many habits/tasks/check-ins (here or in the cloud) it **pauses** and asks. Cloud emptied -> offer to restore the cloud from this device.
+- Snapshot to `streak2_preimport` before the cloud removes anything locally.
+- Sync is off while saved data is unreadable (`streak2_corrupt` case).
+- Import -> Replace resets the baseline, so a Replace can never delete cloud data.
+- "Upload this device to cloud" and "Restore" stay as manual recovery tools.
+
+## Known limits
+No live push between open devices (changes arrive on next open/return/Sync now); habit order is not synced after creation; a habit's schedule change still applies to past days (audit B7).
