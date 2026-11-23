@@ -179,7 +179,7 @@ function doSync(opt){
     var pushes=M.h.toC.del.length+M.t.toC.del.length+M.l.toC.del.length+M.s.toC.del.length+count(M.h.toC.set)+count(M.t.toC.set)+count(M.l.toC.set)+count(M.s.toC.set);
     var fin={h:M.h.final,t:M.t.final,l:M.l.final,s:M.s.final,to:order};
     return (pushes||orderChangedForCloud?pushCloud(M,C.l2u,order,orderChangedForCloud):Promise.resolve()).then(function(){
-      setBase(fin);return {ok:true,pulled:pulls,pushed:pushes}})})}
+      setBase(fin);return {ok:true,pulled:pulls,pushed:pushes,habits:count(M.h.final),tasks:count(M.t.final),cloudHabits:count(C.h),hereHabits:count(L.h)}})})}
 
 function setStatus(s){status=s;var e=$('cl-st');if(e)e.textContent=s}
 function sync(opt){opt=opt||{};
@@ -189,7 +189,7 @@ function sync(opt){opt=opt||{};
   clearTimeout(timer);lastTry=Date.now();setStatus('Syncing…');
   running=doSync(opt).then(function(r){running=null;
     if(r.paused){setStatus('Sync paused: '+(r.kind==='local'?'this device removed many items':'the cloud is missing many items'));return r}
-    lastOk=Date.now();setStatus('Synced '+new Date(lastOk).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+    lastOk=Date.now();setStatus('Synced '+new Date(lastOk).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+r.habits+' habits, '+r.tasks+' tasks · received '+r.pulled+', sent '+r.pushed+' (cloud had '+r.cloudHabits+' habits, this device had '+r.hereHabits+')');
     if(dirty){dirty=false;return sync()}return r},
     function(e){running=null;dirty=false;setStatus(isNet(e)?'Offline. Will sync when connected':'Sync error: '+errText(e));return {error:errText(e)}});
   return running}
